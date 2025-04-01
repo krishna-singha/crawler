@@ -1,0 +1,9 @@
+httpx
+spacy
+flashtext
+tldextract
+bs4
+beautifulsoup4
+redis
+pandas
+pyarrow
