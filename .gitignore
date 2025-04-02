@@ -1,5 +1,5 @@
 __pycache__*
-.env*
+.myenv*
 .DS_Store*
 myenv*
 data*
