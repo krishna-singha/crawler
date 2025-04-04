@@ -1,6 +1,6 @@
 import threading
 import logging
-from queue import Queue, Empty
+from queue import Queue
 from src.Spider import Spider
 from src.RedisManager import RedisManager
 from config.config import START_URL, NUMBER_OF_THREADS
@@ -27,16 +27,10 @@ class Crawler:
     def work(self):
         """Worker thread that processes URLs from the queue."""
         while True:
-            try:
-                url = self.queue.get(timeout=5)  # Prevent infinite blocking
-            except Empty:
-                if self.queue.empty():
-                    break  # Exit when no jobs remain
-                continue
-            
-            if url is None:  
-                break  # Stop thread when `None` is received
-            
+            url = self.queue.get()
+            if url is None:  # Signal to stop
+                break
+
             try:
                 logging.info(f"Crawling: {url}")
                 self.spider.crawl_page(threading.current_thread().name, url)
@@ -63,6 +57,7 @@ class Crawler:
         for link in links:
             self.queue.put(link)
 
+        logging.info(f"📥 Loaded {len(links)} links into queue.")
         return True
 
     def crawl(self):
@@ -71,24 +66,20 @@ class Crawler:
 
         while True:
             if not self.create_jobs():
-                logging.info("✅ No links to process. Exiting...")
-                break  
+                break  # No jobs to process
 
-            self.queue.join()  # Ensure all tasks are marked as done
+            self.queue.join()  # Block until all tasks are done
 
         self.stop_workers()
 
         for thread in self.threads:
-            if thread.is_alive():
-                thread.join()  # Ensure all threads exit before quitting
+            thread.join()
 
     def stop_workers(self):
         """Stop worker threads by sending `None` signals to the queue."""
+        logging.info("🛑 Stopping workers...")
         for _ in range(self.number_of_threads):
             self.queue.put(None)
-
-        for thread in self.threads:
-            thread.join()  # Wait for all workers to finish
 
 if __name__ == "__main__":
     try:

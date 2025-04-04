@@ -2,7 +2,6 @@ import pandas as pd
 import os
 from config.config import DATA_DIR
 from filelock import FileLock
-import json
 
 class ParquetManager:
     def __init__(self, file_path):
