@@ -1,6 +1,7 @@
 import redis
 from config.config import START_URL
 
+
 class RedisManager:
     _instance = None  # Singleton instance
 
